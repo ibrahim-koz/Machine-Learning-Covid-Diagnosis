@@ -1,7 +1,10 @@
 import random
 import cv2
-
 # Returns index of x in arr if present, else -1
+import numpy as np
+from Utils.distance_metrics import mahalanobis
+
+
 def binary_search(arr, l, r, x):
     # Check base case
     if r >= l:
@@ -39,12 +42,6 @@ def split_train_test(dataset, split_ratio):
 
     return train_sample, test_sample
 
-
-def euclidean_distance(instance1, instance2, attributes):
-    sum_dist = 0
-    for i in attributes:
-        sum_dist += (int(instance1[i]) - int(instance2[i])) ** 2
-    return sum_dist
 
 
 def image_resize(image, width=None, height=None, inter=cv2.INTER_AREA):
@@ -90,3 +87,25 @@ def shuffle_together(a, b):
     return a, b
     # a, array([3, 4, 1, 2, 0])
     # b, array([8, 9, 6, 7, 5])
+
+
+def PCA(ref2d):
+    features = ref2d.T
+    cov_matrix = np.cov(features)
+    values, vectors = np.linalg.eig(cov_matrix)
+    explained_variances = []
+    for i in range(len(values)):
+        explained_variances.append(values[i] / np.sum(values))
+    print(np.sum(explained_variances), '\n', explained_variances)
+
+
+def pick_optimum_k(dataset):
+    l = int(len(dataset) ** .5)
+    if l % 2 == 0:
+        return l + 1
+    return l
+
+
+
+
+
