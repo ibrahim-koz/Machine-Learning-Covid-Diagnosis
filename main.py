@@ -82,17 +82,27 @@ def test(covid_cases, normal_cases, viral_cases):
     for i in range(len(X_test)):
         y_pred.append(knn.get_knn(X_test[i]))
     y_pred = np.array(y_pred)
-    weighted_y_pred = knn.get_weighted_knn(X_test)
+
+    weighted_y_pred = []
+    for i in range(len(X_test)):
+        weighted_y_pred.append(knn.get_weighted_knn(X_test[i]))
+    weighted_y_pred = np.array(weighted_y_pred)
 
     from sklearn.metrics import confusion_matrix
     conf_matrix = confusion_matrix(y_test, y_pred)
+    print("naive knn")
     print(conf_matrix)
+    print("accuracy:", np.trace(conf_matrix) / np.sum(conf_matrix))
+
+    print("weighted knn")
     weighted_conf_matrix = confusion_matrix(y_test, weighted_y_pred)
     print(weighted_conf_matrix)
+    print("accuracy:", np.trace(weighted_conf_matrix) / np.sum(weighted_conf_matrix))
 
-covid_cases_gab, covid_cases_can = process_directory(r'train/COVID_SAMPLE30/')
-normal_cases_gab, normal_cases_can = process_directory(r'train/NORMAL_SAMPLE30/')
-viral_cases_gab, viral_cases_can = process_directory(r'train/VIRAL_SAMPLE30/')
+
+covid_cases_gab, covid_cases_can = process_directory(r'train/COVID_SAMPLE200/')
+normal_cases_gab, normal_cases_can = process_directory(r'train/NORMAL_SAMPLE200/')
+viral_cases_gab, viral_cases_can = process_directory(r'train/VIRAL_SAMPLE200/')
 
 covid_cases = np.concatenate((covid_cases_gab, covid_cases_can), axis=1)
 normal_cases = np.concatenate((normal_cases_gab, normal_cases_can), axis=1)
