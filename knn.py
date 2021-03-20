@@ -2,6 +2,7 @@ import operator
 
 from Utils.distance_metrics import euclidean_distance
 from Utils.distance_metrics import mahalanobis
+import numpy as np
 
 
 class KNN:
@@ -14,7 +15,7 @@ class KNN:
     def find_distances(self, test_instance):
         distances = []
         for i in range(len(self.x_train)):
-            distances.append([euclidean_distance(self.x_train[i], test_instance, self.attributes), i])
+            distances.append([np.linalg.norm(self.x_train[i] - test_instance), i])
         return distances
 
     def get_knn(self, test_instance):
@@ -23,7 +24,7 @@ class KNN:
 
     def get_weighted_knn(self, test_instance):
         distances = self.find_distances(test_instance)
-        return self.decide(distances, kernel_function=lambda x: 1/(x + 0.0000000001))
+        return self.decide(distances, kernel_function=lambda x: 1 / (x + 0.0000000001))
 
     def decide(self, distances, kernel_function=lambda x: 1):
         distances.sort(key=lambda x: x[0], reverse=True)

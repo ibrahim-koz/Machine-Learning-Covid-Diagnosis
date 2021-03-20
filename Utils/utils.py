@@ -2,46 +2,6 @@ import random
 import cv2
 # Returns index of x in arr if present, else -1
 import numpy as np
-from Utils.distance_metrics import mahalanobis
-
-
-def binary_search(arr, l, r, x):
-    # Check base case
-    if r >= l:
-
-        mid = l + (r - l) // 2
-
-        # If element is present at the middle itself
-        if arr[mid] == x:
-            return mid
-
-            # If element is smaller than mid, then it
-        # can only be present in left subarray
-        elif arr[mid] > x:
-            return binary_search(arr, l, mid - 1, x)
-
-            # Else the element can only be present
-        # in right subarray
-        else:
-            return binary_search(arr, mid + 1, r, x)
-
-    else:
-        # Element is not present in the array
-        return -1
-
-
-def split_train_test(dataset, split_ratio):
-    train_sample = random.sample(range(0, len(dataset)), int(len(dataset) * 0.67))
-    train_sample.sort()
-
-    test_sample = []
-    for i in range(0, len(dataset)):
-        if binary_search(train_sample, 0, len(train_sample) - 1, i) == -1:
-            test_sample.append(i)
-    random.shuffle(test_sample)
-
-    return train_sample, test_sample
-
 
 
 def image_resize(image, width=None, height=None, inter=cv2.INTER_AREA):
@@ -104,8 +64,3 @@ def pick_optimum_k(dataset):
     if l % 2 == 0:
         return l + 1
     return l
-
-
-
-
-
