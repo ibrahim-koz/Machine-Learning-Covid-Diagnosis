@@ -9,7 +9,7 @@ from enum import Enum
 from Utils.utils import image_resize
 from Utils.utils import pick_optimum_k
 from knn import KNN
-
+from numba import njit
 
 class Label(Enum):
     COVID = 0
@@ -33,10 +33,9 @@ def process_data(file_path):
 
 
 def process_directory(dir_path):
-    import random
     gab_whole_dataset = []
     can_whole_dataset = []
-    for f in random.sample(listdir(dir_path), 30):
+    for f in listdir(dir_path):
         file_path = join(dir_path + f)
         gab_out, can_out = process_data(file_path)
         if len(gab_out) == 1024:
@@ -61,13 +60,16 @@ def test(p_covid_cases, p_normal_cases, p_viral_cases):
     pca = PCA(.98)
 
     from sklearn.model_selection import KFold
-    split_num = len(cases_std)
-    kf = KFold(n_splits=split_num - 1)
+    split_num = 2
+    kf = KFold(n_splits=split_num)
 
-    total_accuracy = 0
-    total_weighted_accuracy = 0
-    total_conf_matrix = np.zeros((3, 3))
-    total_weighted_conf_matrix = np.zeros((3, 3))
+    correct_predictions = 0
+    false_predictions = 0
+
+    weighted_correct_predictions = 0
+    weighted_false_predictions = 0
+
+
     for train_index, test_index in kf.split(cases_std):
         X_train, X_test = cases_std[train_index], cases_std[test_index]
         y_train, y_test = yCases[train_index], yCases[test_index]
@@ -75,35 +77,18 @@ def test(p_covid_cases, p_normal_cases, p_viral_cases):
         X_train = pca.transform(X_train)
         X_test = pca.transform(X_test)
         knn = KNN(X_train, y_train, 6, list(range(len(X_train[0]))))
-        y_pred = []
+
         for i in range(len(X_test)):
-            y_pred.append(knn.get_knn(X_test[i]))
-        y_pred = np.array(y_pred)
+            if knn.get_knn(X_test[i]) == y_test[i]:
+                correct_predictions += 1
 
-        weighted_y_pred = []
         for i in range(len(X_test)):
-            weighted_y_pred.append(knn.get_weighted_knn(X_test[i]))
-        weighted_y_pred = np.array(weighted_y_pred)
+            if knn.get_weighted_knn(X_test[i]) == y_test[i]:
+                weighted_correct_predictions += 1
 
-        from sklearn.metrics import confusion_matrix
-        conf_matrix = confusion_matrix(y_test, y_pred)
-        total_conf_matrix += conf_matrix
-        accuracy = np.trace(conf_matrix) / np.sum(conf_matrix)
-        total_accuracy += accuracy
+    print("LOOCV accuracy: ", correct_predictions / split_num)
 
-        weighted_conf_matrix = confusion_matrix(y_test, weighted_y_pred)
-        total_weighted_conf_matrix += weighted_conf_matrix
-        weighted_accuracy = np.trace(weighted_conf_matrix) / np.sum(weighted_conf_matrix)
-        total_weighted_accuracy += weighted_accuracy
-
-    total_conf_matrix /= split_num
-    total_weighted_conf_matrix /= split_num
-
-    print("k-fold confusion matrix:\n", total_conf_matrix)
-    print("k-fold accuracy: ", total_accuracy / split_num)
-
-    print("k-fold weighted confusion matrix:\n", total_weighted_conf_matrix)
-    print("k-fold weighted accuracy: ", total_weighted_accuracy / split_num)
+    print("LOOCV weighted accuracy: ", weighted_correct_predictions / split_num)
 
 import time
 start_time = time.time()
